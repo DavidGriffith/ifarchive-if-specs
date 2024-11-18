@@ -1568,6 +1568,866 @@ The latter case is also handled with multiple elements. Note that indexing is on
 	  <end-file-position>44186</end-file-position>
 	</source-code-location>
 
+# Changes in the Inform 6 Standard Library   
+
+The last release of the Inform library issued by Graham Nelson was
+[6/11][i6lib11] on 27 February 2004.  Since then, a great number of
+[bugs][inform-fiction-bugs] were reported, some with proposed solutions,
+and [enhancements][inform-fiction-enhancements] were suggested.  By the
+end of 2015, custody of the Inform library was picked up by David
+Griffith who incorporated many of those bug fixes and enhancements.  The
+result was version 6/12.  The version number scheme was then changed to
+semantic versioning.  Version 6/12 became 6.12.0.  So far, there have
+been seven patch updates, focusing mostly on bug fixes.
+
+[inform-fiction-bugs]: http://inform-fiction.org/patches/library.html
+[inform-fiction-enhancements]: http://inform-fiction.org/suggestions/index.html
+
+
+## Bugs Fixed in Version 6/11
+
+Items of the form [L61036] quote the bug's reference number in the
+'Library' section of the [Inform Patch List][inform-fiction-bugs]
+
+- A command like EMPTY ME no longer replies "yourself can't contain
+things". [L61036]
+<br><br>
+- The commands TAKE ALL FROM X and REMOVE ALL FROM X, where X is a
+closed or empty container, now produce sensible messages rather than
+"You can't see any such thing" and "You can't use multiple objects
+with that verb" respectively. [L61035]
+<br><br>
+- A problem with the misbehaviour of name properties on rooms, in
+conjunction with THE, has been corrected. [L61034]
+<br><br>
+- The command `PUT X INTO X` now correctly produces "You can't put
+something inside itself", rather than "You can't see any such thing".
+[L61033]
+<br><br>
+- Run-time errors resulting from `IndirectlyContains()` attempting to find
+the parent of a Class which supports dynamic creation of objects have
+been resolved. [L61032]
+<br><br>
+- Code in `Parser__parse()` which deals with looking ahead to the indirect
+object in cases like `PUT ALL INTO BAG` (a `MULTIEXCEPT` token) and
+`TAKE ALL FROM BAG`  (a `MULTIINSIDE` token) now correctly sets the
+`advance_warning globa`l (to `BAG`). [L61031, L61023]
+<br><br>
+- [The Inform Designer's Manual][dm4] (p. 98) states that `SHOWOBJ` should accept
+an object number; now it does. [L61030]
+<br><br>
+- The `YesOrNo()` routine now re-prompts correctly after garbage input.
+  [L61029]
+<br><br>
+- The parse buffer is no longer declared and initialised incorrectly
+  (albeit harmlessly). [L61028, L60708]
+<br><br>
+- [The Inform Designer's Manual][dm4] (p. 93) defines the calling order of
+routines and properties for the `'Before'` stage as follows:
+	1. GamePreRoutine()
+	2. orders of the player
+	3. react_before of every object in scope
+	4. before of the current room
+	5. before of the first noun, if specified
+
+> In the library, however, steps 3 and 4 are executed in reverse order.
+They are now as documented. [L61027]
+
+- A `found_in` floating object which the player is able to take (probably
+due to a coding error) is no longer silently dropped when the player
+returns to one of the listed rooms. [L61026]
+<br><br>
+- A small problem with inherited `describe` properties has been corrected.
+  [L61025]
+<br><br>
+- Standard screen-handling is now implemented in v6 games. [L61022]
+<br><br>
+- The handling of "You can't go that way" messages is made consistent.
+Also, the statement `ChangeDefault(cant_go,myRoutine);` now works.
+[L61020]
+<br><br>
+- Attempting to place an object in/on an object where it is already now
+results in "It's already there", rather than "You need to be holding
+it before you can put it into something else". [L61019]
+<br><br>
+- A problem with misleading inventory listing has been clarified. [L61018]
+<br><br>
+- The command `LEAVE X` now correctly produces "But you aren't in/on the X",
+if appropriate. [L61017]
+<br><br>
+- The response to `READ` was inappropriate when an object is misspelled
+or out of scope. [L61016]
+<br><br>
+- A small bug in the choice of library messages for `PUSH` and `TURN`, which
+wasn't noticeable unless you overrode the messages to be different
+from `PULL`, has been corrected. [L61015]
+<br><br>
+- If you are in a dark room, you cannot examine what you are holding.
+Yet if you open a container you brought in from a lit room, the standard
+message "You open the box, revealing a..." was not being suppressed.
+[L61014]
+<br><br>
+- The `ScoreMatchL()` routine in `Parserm.h` incorrectly decided which
+objects meet descriptors. As a result, some objects that didn't meet
+descriptors were not properly removed from the match list when the
+library is deciding which objects best match a player's input. [L61013]
+<br><br>
+- The Infix problem parsing commands containing commas and periods has
+been fixed. [L61010]
+<br><br>
+- A problem when describing what's visible after opening a container has
+been corrected. [L61009]
+<br><br>
+- An inappropriate message after `GO NORTH CIRCULAR` has been corrected.
+[L61008]
+<br><br>
+- Modified foreground and background colours are now correct after
+`RESTORE` and `UNDO`. [L61007]
+<br><br>
+- The grammar property now works with a large game whose dictionary lies
+above $8000. [L61006]
+<br><br>
+- A buffer conflict with disambiguation and UNDO has been resolved. [L61004]
+<br><br>
+- If a player is inside a closed, non-transparent container, the
+library prints an extra blank line between the header "The container"
+and the first `inside_description` line it prints. No more. [L61002]
+<br><br>
+- The list writing routines do not handle plural containers correctly.
+If you have two empty boxes, it might list "two boxes (which is
+closed)". Not only should it say "are closed", but it will lump empty
+containers together even if some are open and others aren't. Now
+resolved. [L61001]
+
+## New Features in Version 6/11
+
+When _[The Inform Designer's Manual][dm4]_ was written, the latest
+version of the Inform Library was 6/10.  A few years later, in 2004,
+version 6/11 was released.  These are the new features;
+
+- The library automatically defines four constants: `LIBRARY_PARSER` at
+the end of `Parser.h`, `LIBRARY_VERBLIB` at the end of `VerbLib.h`,
+`LIBRARY_GRAMMAR` at the end of `Grammar.h`, and `LIBRARY_ENGLISH` at the
+end of `English.h`. Contributed library extensions can use these constants to
+check that they have been Included in the correct location. A fifth
+constant `LIBRARY_VERSION`, currently defined as the number 611, can be
+checked by extensions which require this particular version of the
+library.
+<br><br>
+- The word "wall" has been removed from the `CompassDirection` objects
+defined in `English.h`, whose names are now simply "north", "south",
+etc.
+<br><br>
+- The verbs `LOOK [TO THE] NORTH`, `LOOK DOWN`, `LOOK OUT[SIDE]`, etc --
+but not `LOOK IN[SIDE]`, which is already available -- have been added.
+By default, the response is of the form `"You see nothing unexpected..."`,
+but you can change this for individual directions in individual rooms by
+providing a `compass_look` property.
+
+		Room study "Your study"
+			with description "There is a doorway to the east of this austere room.",
+			compass_look [ obj;
+				if (obj == e_obj) "You see a doorway.";
+				if (obj == n_obj or s_obj or w_obj) "You see the wall.";
+			],
+		e_to hallway;
+
+> This enhancement uses the mechanism described in this topic in the
+Inform 6 FAQ (http://www.firthworks.com/roger/informfaq/ww.html#1 How
+can I get rid of those damn walls?) (except that the `compass_look`
+property was previously named `compasslook`), and means that you no longer
+need to make the library changes described there.
+
+- The verbs `"ASK npc TO command"` and `"TELL npc TO command"` -- both
+synomymous with `"npc,command"` -- are provided. The new grammar is:
+
+		Verb 'ask'
+			...
+			* creature 'to' topic -> AskTo
+			...
+
+> in which the creature token matches the npc and the topic token
+represents the command. `AskTo` isn’t an action in the usual sense: it's
+trapped by the parser and converted to the original `npc,command` format.
+The npc can intercept the command by providing an orders property in the
+usual way -- see Section 18 of the Inform Designer’s Manual.
+
+> This enhancement means that you may no longer require Irene Callaci's
+`AskTellOrder.h` library extension.
+
+- The verbs `RECORDING` `[ON|OFF]` and `REPLAY` are now always available,
+irrespective of the `DEBUG` state. This may cause compilation errors if
+you have already defined these verbs yourself.
+<br><br>
+- The verbs `PRY`, `PRISE`, `PRIZE` and `LEVER` have been added. This may cause
+compilation errors if you have already defined these verbs yourself.
+<br><br>
+- The parser treats input lines beginning with `"*"` as a comment,
+without attempting any further parsing. The character used to introduce
+comments can be changed by defining `COMMENT_CHARACTER` before you
+`"Include Parser;"`.  For example:
+
+			Constant COMMENT_CHARACTER '!';
+
+> Since comments are used primarily when capturing a transcript --
+either of a complete game (`SCRIPT ON`) or of input commands only
+(`RECORDING ON`) -- the parser responds `"[Comment recorded]"` or
+`"[Comment NOT recorded]"` as appropriate.
+
+- The `selfobj` object now includes an empty `add_to_scope` property,
+which you can over-ride with your own routine, typically to equip the
+player with body parts. For a single object:
+
+			selfobj.add_to_scope = nose;
+
+> or for multiple objects
+
+			[ IncludeBodyParts; PlaceInScope(nose); PlaceInScope(hands); ];
+			selfobj.add_to_scope = IncludeBodyParts;
+
+- The task-based scoring system (§22 of the Inform Designer's Manual)
+uses a byte array, which precludes the awarding of large or negative
+scores. To get round this, you can Replace the `TaskScore()` library
+routine as follows, and then define task_scores as a word array:
+
+			Replace TaskScore;
+			Array task_scores --> 100 200 300 400 (-50) 600;
+			[ TaskScore i; return task_scores-->i; ];
+
+- The scoring system is completely disabled if you define a constant
+`NO_SCORE` near the start of your game.
+
+			Constant NO_SCORE;
+
+- A new before_implicit property is available; at the moment this is
+used only by the parser, when it is about to perform an implicit `TAKE`
+(for example, `EAT APPLE` when you're not holding the apple). You can
+give this property to an object if you wish to control the parser's
+behaviour. The property's value should be a constant or a routine which
+returns: `0` to report "(first taking the...)" and then attempt to do so
+(this is what currently happens); 1 to attempt the `TAKE` without first
+issuing the message, 2 to proceed with the requested action without
+attempting the TAKE, or 3 to object that "You aren't holding that!". The
+object can test `action_to_be` to determine which action has triggered
+the `TAKE`
+
+			before_implicit [;
+				Take: if (action_to_be == ##Eat) return 2;
+			],
+
+- A new system variable `sys_statusline_flag` is set to `1` initially if
+you have used the `statusline time;` directive in your program to show a
+clock, and to `0` otherwise. It can be changed by the program.
+
+- An object's invent property -- if it has one -- is now invoked both
+when displaying the player’s inventory and when including the object
+in a room description. invent is invoked in the usual way (with
+`inventory_stage` first set to `1`, and then set to `2` both when
+mentioning the object in a room description, and when listing it in
+the player's inventory. By default you’ll get the same output each
+time. If you need to distinguish between the two occasions, you can
+test `(c_style&PARTINV_BIT)` -- true during a room description -- or
+`(c_style&FULLINV_BIT)` — true during an inventory. Here’s an example:
+
+			Object  -> "sack"
+				with  name 'sack',
+				invent [;
+					! When listing objects in the player's inventory
+					if (c_style&FULLINV_BIT) rfalse;
+
+					! When listing objects at the end of a room description
+					if (inventory_stage == 1) switch (children(self)) {
+						0: print "an empty sack";
+						1: print "a sack containing ", (a) child(self);
+						default: print "an assortment of objects in a sack";
+					}
+					rtrue;
+				],
+				has container open;
+
+> This enhancement uses the mechanism described in
+http://www.firthworks.com/roger/informfaq/ww.html#4 in the Inform 6 FAQ
+(Can I avoid printing "(which is empty)" after a container?) and means
+that you no longer need to `Include WriteList`.
+
+- The turns counter is now initialised to `0`, not `1`. You can change this
+if you define a constant `START_MOVE` near the start of your game.
+
+			Constant START_MOVE 1;
+
+- A new LibraryExtensions object is defined, whose function is to act as
+a parent to initialisation objects created by library extensions.
+These objects may provide `ext_initialise` and/or `ext_messages` property
+routines, whose role is to help integrate the extension into a game.
+This is best explained by example.
+<br><br>
+Consider the `SmartCantGo.h` extension, which replaces "You can't go
+that way" messages by the more informative "You can go only north,
+south and east", and can be integrated into a game by adding a
+`ChangeDefault(cant_go, SmartCantGo)` statement to your `Initialise()`
+routine. Instead of requiring the author to make this addition, the
+extension could now cause it to happen automatically by defining an
+initialisation object as a child of `LibraryExtensions`, like this:
+
+			Object  "(SmartCantGo)" LibraryExtensions
+				with  ext_initialise [; ChangeDefault(cant_go, SmartCantGo); ];
+
+Just before calling the game's `Initialise()` routine, the library loops
+through the children -- if any -- of `LibraryExtensions`, and executes
+those `ext_initialise` properties that it finds there. The property
+routines can perform any appropriate setup processing that would
+otherwise have to be inserted into the `Initialise()` routine itself;
+for example, starting a daemon running.
+
+A similar process takes place when displaying library messages. The
+library first checks whether the author has provided a `LibraryMessages`
+object to intercept the message which it is about to display. If not,
+it now loops through the children of `LibraryExtensions`, and executes
+`ext_messages` properties that it finds there. If none of those routines
+returns `true` to signal that the message has been dealt with, the
+standard library text is then printed in the usual way. For example,
+here's how an extension might automatically intercept `Inventory`
+messages (unless the game has already handled them via `LibraryMessages`):
+
+			Object  "(someInventoryExtension)" LibraryExtensions
+				with ext_messages [;
+					Inv: switch(lm_n) {
+						1: "You are empty-handed.";
+						2: "Your possessions include";
+					}
+				];
+
+Note that this is an experimental feature, and may be modified or
+extended in the light of experience.
+
+
+## Bugs Fixed in Version 6/12
+
+Items of the form [L61036] quote the bug's reference number in the
+'Library' section of the [Inform Patch List][inform-fiction-bugs]
+
+- WAVE AT has been improved.
+<br><br>
+- Handling of ambiguous orders given to NPCs has been improved.
+<br><br>
+- Fixed a problem with misparsing caused by incomplete orders.
+<br><br>
+- Issue L61101: `each_turn` property causes runtime error.<br>
+Problem: An each_turn property with both a local routine and a routine
+inherited from a Class causes a runtime error in Strict mode.<br>
+Status: Fixed
+<br><br>
+- Issue L61102: `GET IN` now matches `Compass` object.<br>
+Adding "in_obj.&name-->0 = '.ignore';" to Initialise() reverts back to
+the previous behavior.<br>
+Status: Fixed
+<br><br>
+- Issue L61103: `"statusline time;"` statement isn't recognized.<br>
+Problem: When I compile Greystone with 6.30 and 6/11 my statusline time;
+statement is seemingly ignored; the game runs by moves and not a clock.
+If I revert back to 6.21 and 6/10 the statusline is indeed a clock again
+and not a move counter.<br>
+Status: Unable to reproduce
+<br><br>
+- Issue L61104: `ListMaker` doesn't support 'serial' commas.<br>
+Problem: The WriteListFrom() listmaker doesn't support 'serial' commas
+(aka Oxford or Harvard commas): Tom, Dick, and Harry.<br>
+Status: Fixed
+<br><br>
+- Issue L61105: 'Game uses colour' bit is always set.<br>
+Problem: Every game compiled with the 6/11 library has the 'game uses
+colour' bit set in the Flags2 header word.<br>
+Fixed: From now on, if you want a game to use color, add `"Constant
+COLOUR;"` or `"Constant COLOR;"` to the beginning of your code.<br>
+Status: Fixed
+<br><br>
+- Issue L61106: Improvement to `LibraryExtensions.RunUntil`.<br>
+Problem: `The LibraryExtensions.RunUntil` property (new at 6/11 and not
+currently used by the library) should return simply `true` or `false` if it
+does nothing.<br>
+Status: Fixed
+<br><br>
+- Issue L61107: (The) with 'proper' should capitalise object name.<br>
+Problem: In the case of an object with the `proper` attribute and a
+lower-case name (such as "your nose", "your corduroy trousers", "your
+mother's purse"), the (The) print rule should capitalise the first
+letter of the object name, so that library messages such as `(The) x1,
+" ", (isorare) x1, " empty."` correctly produce "Your mother's purse is
+empty."<br>
+Status: Fixed
+<br><br>
+- Issue L61108: `indef_mode` not restored.<br>
+Problem: When printing an object with the proper attribute, the
+functions `IndefArt()` and `CIndefArt()` temporarily modify -- but do not
+restore -- the value of the global variable `indef_mode`.<br>
+Status: Fixed
+<br><br>
+- Issue L61109: Problem with `'Give reverse'` grammar.<br>
+Status: Fixed
+<br><br>
+- Issue L61110: Inference message inconsistency.<br>
+Problem: In a pile of several indistinguishable objects, taking them
+from the floor does not generate an (inference) message, but it does
+when the final one is taken. (See also Suggestion 48)<br>
+Status: Fixed
+<br><br>
+- Issue L61111: Multiple AGAINs treated as one.<br>
+Status: Fixed
+<br><br>
+- Issue L61112: `WITHOUT_DIRECTIONS` causes compilation error.
+Problem: Version 6/11 of the Inform Library fails to compile if the
+constant `WITHOUT_DIRECTIONS` is set and the objects `u_obj` and `d_obj`
+aren't defined, because a few library routines expect those objects to
+exist.<br>
+Status: Fixed
+<br><br>
+- Issue L61113: Size of upper window not restored properly on `UNDO`.<br>
+Problem: Compile and run a trivial game with Nitfol. When the game
+begins, type `WAIT` and then `UNDO`. Nitfol displays the message `[ERROR:
+output]: illegal line for set_cursor (1) 46968 (1,1)` This happens in
+`DrawStatusLine()` and the reason is that the upper window has height 0,
+but the Library tries to position the cursor at (1,1).<br>
+Status: I couldn't get Nitfol to complain like this, but applied the
+fix anyhow.
+<br><br>
+- Issue L61114: Numbers in the name property.<br>
+Problem: Code such as this would cause `GET 1` to not match the box:
+	Object  -> box1 "box marked 1"
+		with  name 'box' 'marked' '1//',
+		description "It's a wooden box marked with the number 1.";
+<br>
+>Object  -> box2 "box marked 2"<br>
+  with  name 'box' 'marked' '2//',<br>
+  description "It's a wooden box marked with the number 2.";
+
+Status: Fixed
+
+FIXME: How do I get the bullet points to not get messed up?
+
+- Issue L61115: `multiheld` can match unholdable objects.<br>
+Problem: Contrary to the DM4, multiheld sometimes matches objects that
+are not held. This would be OK if the objects were then implicitly
+taken, like they are for held, but they are not.<br>
+Status: Fixed
+<br><br>
+- Issue L61116: Poor response from `WAVE SELF`.
+Problem: The message produced by `WAVE SELF` -- "But you aren't holding
+you" -- makes little sense.<br>
+Status: Fixed
+<br><br>
+- Issue L61117: Problem with `<action>` statements in Infix.<br>
+Status: Fixed
+<br><br>
+- Issue L61118: `thedark.initial` is never called.<br>
+Problem: The library thoughtfully provides `thedark.initial`, but it is
+never called unless you are diabolical enough to make `thedark` contained
+by some location, which I'm sure is not what it was meant for. The DM is
+a bit contradictory about the purpose of thedark.initial, but the
+functionality that makes the most sense is that it is called at the
+transition from lighted to darkened. This makes up a gap in
+functionality: `NewRoom()` is called on light-to-light and dark-to-light;
+`DarkToDark()` is called on dark-to-dark, but absolutely nothing is called
+on light-to-dark.<br>
+Status: Fixed
+<br><br>
+- Issue L61119:  `TRACE` should distinguish matched and inferred token.<br>
+Problem:  When the parser partially matches a phrase, the `TRACE` command
+should not say "token resulted in success" for terms that it did not
+match but sucessfully inferred; instead it should state that those
+terms were inferred. This would avoid the phrase "token resulted in
+success" phrase meaning two different things -- actually matching and
+inferring.<br>
+Status: Won't fix.  Maybe will fix in 6/13.
+<br><br>
+- Issue L61120: Preposition parsing is too simplistic.<br>
+Status: Fixed (by way of L61127)
+<br><br>
+- Issue L61121: `add_to_scope` of parentless object causes error.
+Problem: Consider an object which has no parent, and is brought into
+scope by an `add_to_scope` property. An attempt to take that object causes
+error message:<br>
+> `[** Programming error: tried to test "has" or "hasnt" of nothing **]`<br>
+> `[** Programming error: tried to test "has" or "hasnt" of nothing **]`<br>
+> `That's hardly portable.`<br>
+
+Status: Fixed
+
+
+<br>
+- Issue L61122: Conflict between `describe` and `initial` properties.<br>
+Problem: This object displays its `initial` message even though it has
+`moved` attribute; this is because of the presence of the `describe`
+property, even though it returns false.<br>
+Status: Fixed
+<br><br>
+- Issue L61123: Minor problem with parse_name.<br>
+Problem: A (rather minor) error with the `parse_name` routine. On page
+209, the DM4 states: ...<br>
+Status: Fixed
+<br><br>
+- Issue L61124: Spurious space with 'articles' property.<br>
+Problem: The rarely-used `articles` property defines an array of strings.
+(The property is provided for non-English languages where irregular
+nouns may have unusual vowel-contraction rules with articles.) The DM4
+gives an example appropriate for a French game, with three strings in
+the array
+
+		Object  "haricot"
+		with  name 'haricot' 'legume',
+			articles "Le "   "le "   "un ",
+			... ;
+
+> Note that each string includes its individual trailing space, if
+appropriate. This is important, because a definite article like l' must
+be followed immediately by the object's name, without any intervening
+space. However, in fact a space does appear.<br>
+Status: Fixed
+
+- Issue L61125: `match_list` and `match_scores` over-run.<br>
+Problem: The problem is that `match_list-->number_matched` is being
+accessed, when `match_list` has length only `number_matched` (that is,
+entries `0..number_matched-1`). In particular this causes errors when the
+`match_list` is of full length (64 entries). Similarly for `match_scores`.<br>
+Status: Fixed
+<br><br>
+- Issue L61126: `parser_inflection` requires common properties in Glulx.<br>
+Problem: Glulx cannot distinguish between a global that is a function or
+a common property.  They must be addressed differently.  Code has been
+introduced to require the author to explicity declare if
+`parser_inflection` is a function or a common property.<br>
+Status: Fixed
+<br><br>
+- Issue L61127: Improve `multiexcept` look-ahead.<br>
+Problem: When the parser processes a grammar line that uses `multiexcept`
+or `multiinside`, it jumps ahead to match the second noun in order to
+provide context for the first one. However, in doing so, it skips over
+all the prepositions in the input, without caring whether they match the
+prepositions in the grammar line. If the second noun is ambiguous, this
+means the player may be asked a disambiguation question for a grammar
+line that has no chance of succeeding, whereas the grammar line that
+eventually succeeds might not even need disambiguation (thanks to
+different token type or `ChooseObjects`).
+This also fixes L61120<br>
+Status: Fixed<br>
+Notes: I have also applied a fix submitted by Nathan Schwartzman at
+http://inform7.com/mantis/view.php?id=636
+<br><br>
+- Issue L61128: `OOPS` sometimes changes wrong word.<br>
+Problem: The `OOPS` command doesn't necessarily change the faulty word. In
+the examples below, `ZZZ` should be corrected to `RUBY`. This happens in
+the first example, but not the second.
+
+		You can see a pearl ring and a ruby ring here.
+
+		>TRACE 2
+		[Parser tracing set to level 2.]
+
+		>EXAMINE ZZZ RING
+		[ "examine" examine / "zzz" ? / "ring" ring ]
+		[Parsing for the verb 'examine' (1 lines)]
+
+		[line 0 * noun -> Examine]
+		[line 0 token 1 word 2 : noun]
+		You can't see any such thing.
+
+		>OOPS RUBY
+		[ "examine" examine / "ruby" ruby / "ring" ring ]
+		[Parsing for the verb 'examine' (1 lines)]
+
+		[line 0 * noun -> Examine]
+		[line 0 token 1 word 2 : noun]
+		[line 0 token 2 word 4 : END]
+		Line successfully parsed]
+
+		You see nothing special about the ruby ring.
+
+		>EXAMINE RING ZZZ
+		[ "examine" examine / "ring" ring / "zzz" ? ]
+		[Parsing for the verb 'examine' (1 lines)]
+
+		[line 0 * noun -> Examine]
+		[line 0 token 1 word 2 : noun]
+
+		You can't see any such thing.
+
+		>OOPS RUBY
+		[ "examine" examine / "ruby" ruby / "zzz" ? ]
+		[Parsing for the verb 'examine' (1 lines)]
+
+		[line 0 * noun -> Examine]
+		[line 0 token 1 word 2 : noun]
+		[line 0 token 2 word 3 : END]
+
+		I only understood you as far as wanting to examine the ruby ring.
+
+		>
+  Status: Fixed
+
+<br>- Issue L61129: Results from `grammar` property are misplaced.<br>
+Problem: An animate or talkable object's `grammar` property can return 1
+to mean (quoting from DM4) "you can stop parsing now because I have done
+it all, and put the resulting order into the variables action, noun and
+second". However, the library code to handle this return value does not
+work correctly.<br>
+Status: Fixed<br>
+FIXME: Maybe do this to fix the markdown rendering trouble?
+
+
+## New Features in Version 6/12
+
+The Inform Library version 6.12 introduces two fun new ways of
+storytelling.  First, you can use first-person and third person
+narrative voices.  Second, you can use past tense.  Both of these new
+tools are deeply intertwined.
+
+### Narrative Voices and Tenses
+
+The typical way to write interactive fiction has been for the game to
+talk about the player in the second-person narrative voice in the
+present tense.  For example:
+
+	> PUT COOKIE ON TABLE
+	You put the cookie on the table.
+
+That's how Infocom usually did things and is Inform's default.  Now
+suppose you, the author, want the story to read more like an
+autobiography.  Consider this:
+
+	> PUT COOKIE ON TABLE
+	I put the cookie on the table.
+
+That is the first-person narrative voice.  Third-person narrative voice
+looks like this:
+
+	> PUT COOKIE ON TABLE
+	George puts the cookie on the table.
+
+To cause these alternative narrative voices, the player object needs to
+have a `narrative_voice property` with a value of `1` or `3`.  Setting
+it to `2` results in the old regular behavior.  It's most convenient to
+do this in the `Initialise()` routine like this:
+
+	[ Initialise;
+		location = TheRoom;
+		player.narrative_voice = 1;
+	];
+
+For third-person mode, some additional properties are necessary:
+
+	[ Initialise;
+		location = TheRoom;
+		player.narrative_voice = 3;
+		player.short_name = "George Jones";
+		(player.&name)-->0 = 'George';
+		(player.&name)-->1 = 'Jones';
+	];
+
+The name property must be specified like that.  There are five slots to
+which you may add dictionary words.
+
+Using these modes may require a bit more discipline when it comes to
+writing your prose and dealing with the default responses from new verbs
+you introduce.  If the player always controls the same character and/or
+the narrative voice never changes, you can write your verb subroutines
+to always talk about George.  If the player changes characters or the
+narrative voice changes, things get a bit more complicated.  Problems
+like that can be solved by careful use of the `CSubject` functions which
+are detailed at the end of this section.
+
+Previously if you changed the player-character to something other than
+selfobj, the former player-character would be described as "Your former
+self" when typing `"LOOK"`.  If you want to change bodies like this, you
+must set `player.short_name` even if you use the old regular second-person
+voice.  Make sure the `narrative_voice`, `short_name`, and `name` properties
+are all sensibly set for all possible bodies the player might control.
+
+Changing bodies can be a handy technique for implement flashbacks.
+Create `self2`, `self3`, and so on for each time period you visit.  Just
+change the player global to the self you want to be in control.  The
+`SelfClass` class is provided with all the various properties a
+player-character needs.  Use this class whenever you create a new self.
+
+An interesting way of using the third-person voice is to give the PC a
+generic name like "detective" (put that in the `short_name` and `name`
+properties).  Then take away the PC's `proper` attribute.  This will cause
+the library to address the PC as "the detective" and correctly
+capitalize the word "the".  For instance:
+
+	[ Initialise;
+		location = theroom;
+		player.narrative_voice = 3;
+		player.short_name = "detective";
+		(player.&name)-->0 = 'detective';
+		give player ~proper;
+	];
+
+That results in a room description like this:
+
+	>PUT FOLDER ON TABLE
+	The detective puts the folder on the table.
+
+	>LOOK
+
+	Squad Room
+	This is the 13th Precinct's squad room.
+
+	The detective can see a table (upon which is a folder).
+
+	>INVENTORY
+	The detective is carrying:
+		a badge
+		a revolver
+
+The default article used to describe a non-proper PC is "the".  If you
+want to talk about "a detective", just set `player.article` to "a".
+
+There is another property for the player object: `nameless`.  This has
+meaning only in the first-person or second-person narrative voices.
+Normally if you're using either of these voices and the PC switches
+bodies, the PC's former body is referred to as "My former self" or "Your
+former self".  If you want the former body to be referred to some other
+way, set `player.nameless` to `false` and set the `name` and `short_name`
+properties to something appropriate.  If third-person narrative voice is
+used, the `nameless` property is ignored.  "The detective" isn't
+namelessness.  It's just not a proper name.
+
+The Library uses the `CSubject subroutines` to figure out when to say "I",
+"You", or "George".  You can use them too.  The most important of these
+is `CSubjectVerb()`.  It handles the conjugation of verbs used by the
+actor.  These are its parameters:
+
+	obj		The actor who is doing something.
+	reportage	Boolean: causes the actor to "observe"
+	nocaps		Boolean: Don't capitalise if "you" is used[^2].
+	v1		1st person "I" present verb.
+	v2		2nd person "You" present verb[^3].
+	v3		3rd person "He", "she", or "it" present verb.
+	past		The past tense form of the verb[^4].
+
+**reportage**
+
+In the Library itself, `reportage` is used in `SubjectNotPlayer()`
+which determines the correct conjugation for certain actions performed
+by NPCs.  If this is "`false`", then this will happen:
+
+	>SALLY, RUB LAMP
+	Sally achieves nothing by this.
+
+If this is "`true`" then this happens:
+
+	>SALLY, RUB LAMP
+	Sally observes that she achieves nothing by this.
+
+This sort of thing can be important if you want to imply that the NPC is
+aware of the result of an action.
+
+**nocaps**
+
+When the second-person voice is used, responses very often begin
+with "You".  Suppose you want to put a conjunction like "but" in front
+of "you".  For instance:
+
+	>EAT PUDDING
+	But you can't have any pudding if you don't eat your meat!
+
+See that "you" is not capitalised.  If you omit this parameter, it will
+be false and therefore the game will capitalise "you".  If you want to
+use a conjunction as in the above example, pass "true".
+
+**v2**
+
+The v2 parameter is usually not necessary because the first and
+second person present forms of verbs are usually the same.  Unless you
+have something special planned, pass 0 for v2.
+
+**past**
+
+Past tense can be useful for implementing a flashback.  For
+instance:
+
+	>EXAMINE VASE
+	The vase was very expensive-looking.
+
+### Calling the `CSubject` functions
+
+Here's an example of using `CSubjectVerb()`:
+
+	CSubjectVerb(actor,false,false,"close",0,"closes","closed"); " ", (the) x1, ".";
+
+The default is to use the present tense.  If you want to change to the
+past tense, set `player.narrative_tense` to `PAST_TENSE`.  To change back,
+change it to `PRESENT_TENSE`.  If you're doing something more complicated,
+like going back and forth between the present and the past, it can be
+handy to create a "past PC" with its own posessions and properties.
+That one always has its `narrative_tense` set to `PAST_TENSE`.  Then when
+you want to flash back, simply call `ChangePlayer()` appropriately.
+
+There is a helper function called `Tense()` that doesn't quite fit in with
+the `CSubject` functions.  This one takes two parameters: `present` and
+`past`.  Its purpose is to keep the tense of various verbs straight.  It's
+not meant for sorting out narrative voices, but instead is applied after
+that has been sorted out.  In fact, `Tense()` is used extensively in the
+`CSubject` helper functions to do just that.  Here's how to use it:
+
+	print "After the storm, there still ";
+	Tense("isn't", "wasn't");
+	" enough rainfall.";
+
+### Sample Calls
+
+Most of the rest of the `CSubject` functions are wrappers for commonly
+used verbs: "is", "isn't", "has", "will", "can", "can't", and "don't".
+These have only three parameters: `obj`, `reportage`, and `nocaps`.  You can
+call these with two or one parameters if you like. The functions will
+receive `0` (also `false`) for missing trailing parameters. `CSubjectVoice()`
+is similar to `CSubjectVerb()` except that the name of the subject is not
+printed.
+
+Here they are along with sample calls:
+
+CSubjectIs()
+
+	CSubjectIs(x1,true); " already closed.";
+
+CSubjectIsnt()
+
+	print "But ";
+	CSubjectIsnt(actor,true,false);
+	" in anything at the moment.";
+
+CSubjectHas()
+
+	CSubjectHas(actor,false); " better things to do.";
+
+CSubjectWill()
+
+	CSubjectWill(actor,true); " first have to close ", (the) x1, ".";
+
+CSubjectCan()
+
+	CSubjectCan(actor,true);
+	" only get into something free-standing.";
+
+CSubjectCant()
+
+	CSubjectCant(actor,true);
+	" usefully blow ", (thatorthose) x1, ".";
+
+CSubjectDont()
+
+	CSubjectDont(x1,true); " seem to fit the lock.";
+
+CSubjectVoice()
+
+	print "What ";
+	CSubjectVoice(player, "do", "do", "does", "did");
+	print " ";
+	CSubjectVerb(player, false, true, "want", "want", "want", "want");
+	" to do?";
+
+
+
+
 # Bugs
 
 A great number of bugs have been fixed since Inform 6.21. The list is not included here. See the [Release Notes][i6release] for details (older notes [here][i6relold]).
