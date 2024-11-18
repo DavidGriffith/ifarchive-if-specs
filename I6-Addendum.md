@@ -58,13 +58,14 @@ The changes described here are mostly to DM4 chapters 1-7, 36, and 38 and up. (S
 
 The Inform library described by the DM4 is version [6/9][i6lib9], which was released along with Inform 6.21 in April of 1999. The library was subsequently updated to [6/10][i6lib10] (a bug-fix release) and then [6/11][i6lib11] (Glulx support and some additional features) before the author shifted his focus to [Inform 7][i7] development.
 
-The Inform library is now a [separate project managed by David Griffith][i6lib]. Updates can be found on the [project page][i6lib].
+The Inform library is now a [separate project managed by David Griffith][i6lib]. Updates can be found on the [project page][i6lib]. The latest verison is [6.12.7][i6lib12].
 
 The Inform 6 compiler can be used with older versions of the Inform library, back through the [Inform 5 libraries][i5lib]. There also exist a number of alternative Inform libraries, such as [metro84][] and [PunyInform][] (supporting very old computers) and [Platypus][] (a redesigned library). The Inform 6 compiler should be usable with all of them.
 
 [i6lib9]: https://ifarchive.org/if-archive/infocom/compilers/inform6/library/old/inform_library69.zip
 [i6lib10]: https://ifarchive.org/if-archive/infocom/compilers/inform6/library/old/inform_library610.zip
 [i6lib11]: https://ifarchive.org/if-archive/infocom/compilers/inform6/library/old/inform_library611.zip
+[i6lib12]: https://ifarchive.org/if-archive/infocom/compilers/inform6/library/inform6lib-6.12.7.zip
 [i6lib]: https://gitlab.com/DavidGriffith/inform6lib
 [i5lib]: https://ifarchive.org/indexes/if-archive/infocom/compilers/inform5/library/
 [metro84]: https://github.com/ByteProject/Metrocenter84/tree/master/metro84
